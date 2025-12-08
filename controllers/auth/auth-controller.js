@@ -7,6 +7,24 @@ const registerUser = async (req, res) => {
   const { userName, email, password, phoneNumber } = req.body;
 
   try {
+    // Log incoming data for debugging
+    console.log("Registration attempt:", { userName, email, phoneNumber, hasPassword: !!password });
+
+    // Validate required fields
+    if (!userName || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Username and password are required",
+      });
+    }
+
+    if (!email && !phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Either email or phone number is required",
+      });
+    }
+
     // Check if user exists by email or phone
     let checkUser = null;
     if (email) {
@@ -41,10 +59,10 @@ const registerUser = async (req, res) => {
       message: "Registration successful",
     });
   } catch (e) {
-    console.log(e);
+    console.error("Registration error:", e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred: " + e.message,
     });
   }
 };
