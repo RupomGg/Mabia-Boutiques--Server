@@ -8,14 +8,12 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    sparse: true,
-    unique: true,
+    default: null,
   },
   phoneNumber: {
     type: String,
     required: false,
-    sparse: true,
-    unique: true,
+    default: null,
   },
   password: {
     type: String,
@@ -30,6 +28,13 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 });
+
+// Create sparse unique indexes - these allow multiple null values
+UserSchema.index({ email: 1 }, { unique: true, sparse: true });
+UserSchema.index({ phoneNumber: 1 }, { unique: true, sparse: true });
+
+// Disable auto index creation (we'll handle it manually in server.js)
+UserSchema.set('autoIndex', false);
 
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

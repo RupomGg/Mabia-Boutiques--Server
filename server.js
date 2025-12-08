@@ -60,11 +60,23 @@ async function fixIndexes() {
   }
 }
 
+// Disable auto-indexing globally to prevent conflicts
+mongoose.set('autoIndex', false);
+
 mongoose
   .connect("mongodb+srv://radwanrupom2001:JDy4dwld0Rdh7u2h@cluster0.rbsyl0p.mongodb.net/")
   .then(async () => {
     console.log("MongoDB connected");
     await fixIndexes();
+    
+    // Now sync User model indexes after we've fixed the collection
+    const User = require("./models/User");
+    try {
+      await User.syncIndexes();
+      console.log("✅ User model indexes synced successfully");
+    } catch (error) {
+      console.log("Note: Index sync:", error.message);
+    }
   })
   .catch((error) => console.log(error));
 

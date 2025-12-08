@@ -1,6 +1,6 @@
 node_modules
-.env
 dist/
 .vercel
 .env*.local
 .env.example
+config.bat
