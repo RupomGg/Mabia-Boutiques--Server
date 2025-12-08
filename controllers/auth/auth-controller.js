@@ -4,9 +4,14 @@ const User = require("../../models/User");
 
 //register
 const registerUser = async (req, res) => {
-  const { userName, email, password, phoneNumber } = req.body;
+  let { userName, email, password, phoneNumber } = req.body;
 
   try {
+    // Clean up empty strings to null
+    email = email && email.trim() !== "" ? email.trim() : null;
+    phoneNumber = phoneNumber && phoneNumber.trim() !== "" ? phoneNumber.trim() : null;
+    userName = userName ? userName.trim() : "";
+
     // Log incoming data for debugging
     console.log("Registration attempt:", { userName, email, phoneNumber, hasPassword: !!password });
 
@@ -48,8 +53,8 @@ const registerUser = async (req, res) => {
     const hashPassword = await bcrypt.hash(password, 12);
     const newUser = new User({
       userName,
-      email: email || null,
-      phoneNumber: phoneNumber || null,
+      email,
+      phoneNumber,
       password: hashPassword,
     });
 
