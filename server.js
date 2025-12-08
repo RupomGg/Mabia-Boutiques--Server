@@ -19,9 +19,49 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 //create a database connection -> u can also
 //create a separate file for this and then import/use that file here
 
+async function fixIndexes() {
+  try {
+    const db = mongoose.connection.db;
+    const usersCollection = db.collection("users");
+
+    // Get existing indexes
+    const indexes = await usersCollection.indexes();
+    console.log("Current indexes:", indexes.map(i => i.name));
+
+    // Fix phoneNumber index if needed
+    const phoneIndex = indexes.find(i => i.name === "phoneNumber_1");
+    if (phoneIndex && !phoneIndex.sparse) {
+      console.log("Fixing phoneNumber index...");
+      await usersCollection.dropIndex("phoneNumber_1");
+      await usersCollection.createIndex(
+        { phoneNumber: 1 },
+        { unique: true, sparse: true }
+      );
+      console.log("✅ Fixed phoneNumber index");
+    }
+
+    // Fix email index if needed
+    const emailIndex = indexes.find(i => i.name === "email_1");
+    if (emailIndex && !emailIndex.sparse) {
+      console.log("Fixing email index...");
+      await usersCollection.dropIndex("email_1");
+      await usersCollection.createIndex(
+        { email: 1 },
+        { unique: true, sparse: true }
+      );
+      console.log("✅ Fixed email index");
+    }
+  } catch (error) {
+    console.log("Index fix note:", error.message);
+  }
+}
+
 mongoose
   .connect("mongodb+srv://radwanrupom2001:JDy4dwld0Rdh7u2h@cluster0.rbsyl0p.mongodb.net/")
-  .then(() => console.log("MongoDB connected"))
+  .then(async () => {
+    console.log("MongoDB connected");
+    await fixIndexes();
+  })
   .catch((error) => console.log(error));
 
 const app = express();
