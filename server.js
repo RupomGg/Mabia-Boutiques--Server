@@ -24,35 +24,39 @@ async function fixIndexes() {
     const db = mongoose.connection.db;
     const usersCollection = db.collection("users");
 
-    // Get existing indexes
-    const indexes = await usersCollection.indexes();
-    console.log("Current indexes:", indexes.map(i => i.name));
+    console.log("Checking and fixing indexes...");
 
-    // Fix phoneNumber index if needed
-    const phoneIndex = indexes.find(i => i.name === "phoneNumber_1");
-    if (phoneIndex && !phoneIndex.sparse) {
-      console.log("Fixing phoneNumber index...");
+    // Force drop and recreate phoneNumber index
+    try {
       await usersCollection.dropIndex("phoneNumber_1");
-      await usersCollection.createIndex(
-        { phoneNumber: 1 },
-        { unique: true, sparse: true }
-      );
-      console.log("✅ Fixed phoneNumber index");
+      console.log("Dropped old phoneNumber index");
+    } catch (e) {
+      console.log("phoneNumber index didn't exist or already dropped");
     }
 
-    // Fix email index if needed
-    const emailIndex = indexes.find(i => i.name === "email_1");
-    if (emailIndex && !emailIndex.sparse) {
-      console.log("Fixing email index...");
+    await usersCollection.createIndex(
+      { phoneNumber: 1 },
+      { unique: true, sparse: true }
+    );
+    console.log("✅ Created sparse unique phoneNumber index");
+
+    // Force drop and recreate email index
+    try {
       await usersCollection.dropIndex("email_1");
-      await usersCollection.createIndex(
-        { email: 1 },
-        { unique: true, sparse: true }
-      );
-      console.log("✅ Fixed email index");
+      console.log("Dropped old email index");
+    } catch (e) {
+      console.log("email index didn't exist or already dropped");
     }
+
+    await usersCollection.createIndex(
+      { email: 1 },
+      { unique: true, sparse: true }
+    );
+    console.log("✅ Created sparse unique email index");
+
+    console.log("All indexes fixed successfully!");
   } catch (error) {
-    console.log("Index fix note:", error.message);
+    console.error("Error fixing indexes:", error.message);
   }
 }
 
